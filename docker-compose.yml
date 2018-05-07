@@ -1,0 +1,53 @@
+version: '2'
+services:
+
+  # The Application
+  app:
+    build:
+      context: ./
+      dockerfile: ./app.docker
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=database"
+      - "READIS_PORT=6379"
+      - "REDIS_HOST=redis"
+
+  # The Web Server
+  web:
+    build:
+      context: ./
+      dockerfile: ./web.docker
+    working_dir: /var/www
+    volumes_from:
+      - app
+    ports:
+      - 8080:80
+
+  # The Database
+  database:
+    image: mysql:5.6
+    volumes:
+      - dbdata:/var/lib/mysql
+    environment:
+      - "MYSQL_DATABASE=homestead"
+      - "MYSQL_USER=homestead"
+      - "MYSQL_PASSWORD=secret"
+      - "MYSQL_ROOT_PASSWORD=secret"
+    ports:
+        - "33061:3306"
+
+  # cache
+  redis:
+    image: redis:3.0
+    ports:
+      - "6380:6379"
+  beanstalk:
+    image: schickling/beanstalkd
+    ports:
+      - "11300:11300"
+
+volumes:
+  dbdata:
